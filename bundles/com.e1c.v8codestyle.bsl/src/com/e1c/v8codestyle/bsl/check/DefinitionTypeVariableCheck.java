@@ -68,7 +68,7 @@ public class DefinitionTypeVariableCheck
             .severity(IssueSeverity.MINOR)
             .issueType(IssueType.CODE_STYLE)
             .extension(new ModuleTopObjectNameFilterExtension())
-            .extension(new CommonSenseCheckExtension(getCheckId(), BslPlugin.PLUGIN_ID))
+            .extension(new CommonSenseCheckExtension(442, getCheckId(), BslPlugin.PLUGIN_ID))
             .module()
             .checkedObjectType(IF_STATEMENT);
     }
