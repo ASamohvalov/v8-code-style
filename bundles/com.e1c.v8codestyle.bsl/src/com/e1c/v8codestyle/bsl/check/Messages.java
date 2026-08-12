@@ -233,6 +233,12 @@ final class Messages
 
     public static String LoacalizationNstrCheck_Issue;
 
+    public static String LoacalizationNstrCheck_Parameter_Title;
+
+    public static String LoacalizationNstrCheck_Parameter_Title_One;
+
+    public static String LoacalizationNstrCheck_Parameter_Title_Zero;
+
     public static String ManagerModuleNamedSelfReferenceCheck_description;
 
     public static String ManagerModuleNamedSelfReferenceCheck_issue;

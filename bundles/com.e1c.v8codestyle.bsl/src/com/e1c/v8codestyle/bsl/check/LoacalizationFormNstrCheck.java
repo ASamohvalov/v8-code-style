@@ -34,12 +34,14 @@ import com._1c.g5.v8.dt.bsl.model.StringLiteral;
 import com._1c.g5.v8.dt.bsl.model.util.BslUtil;
 import com._1c.g5.v8.dt.form.model.Form;
 import com._1c.g5.v8.dt.form.model.FormAttribute;
+import com._1c.g5.v8.dt.form.model.FormAttributeColumn;
 import com._1c.g5.v8.dt.mcore.TypeItem;
+import com._1c.g5.v8.dt.mcore.util.McoreUtil;
 import com.e1c.g5.v8.dt.check.CheckComplexity;
 import com.e1c.g5.v8.dt.check.ICheckParameters;
 import com.e1c.g5.v8.dt.check.settings.IssueSeverity;
 import com.e1c.g5.v8.dt.check.settings.IssueType;
-import com.e1c.v8codestyle.check.CommonSenseCheckExtension;
+import com.e1c.v8codestyle.check.StandardCheckExtension;
 import com.e1c.v8codestyle.internal.bsl.BslPlugin;
 
 /**
@@ -70,7 +72,7 @@ public class LoacalizationFormNstrCheck
             .complexity(CheckComplexity.NORMAL)
             .severity(IssueSeverity.MINOR)
             .issueType(IssueType.CODE_STYLE)
-            .extension(new CommonSenseCheckExtension(getCheckId(), BslPlugin.PLUGIN_ID))
+            .extension(new StandardCheckExtension(761, getCheckId(), BslPlugin.PLUGIN_ID))
             .module()
             .checkedObjectType(MODULE);
     }
@@ -86,13 +88,12 @@ public class LoacalizationFormNstrCheck
         }
         Form form = (Form)formModule.getOwner();
         List<FormAttribute> attributes = form.getAttributes();
-
         for (FormAttribute attribute : attributes)
         {
             List<TypeItem> types = attribute.getValueType().getTypes();
             for (TypeItem type : types)
             {
-                if ("String".equalsIgnoreCase(type.getName())) //$NON-NLS-1$
+                if ("String".equalsIgnoreCase(McoreUtil.getTypeName(type))) //$NON-NLS-1$
                 {
                     List<Method> methods = BslUtil.allMethods(formModule);
                     for (Method method : methods)
@@ -104,6 +105,26 @@ public class LoacalizationFormNstrCheck
                             if (checkStatement(statement))
                             {
                                 resultAceptor.addIssue(Messages.LoacalizationNstrCheck_Issue, statement);
+                            }
+                        }
+                    }
+                }
+                else if ("ValueTable".equalsIgnoreCase(McoreUtil.getTypeName(type))) //$NON-NLS-1$
+                {
+                    List<FormAttributeColumn> columns = attribute.getColumns();
+                    List<Method> methods = BslUtil.allMethods(formModule);
+                    for (FormAttributeColumn column : columns)
+                    {
+                        for (Method method : methods)
+                        {
+                            List<Statement> statements = method.allStatements();
+                            Statement statement = searchStatement(statements, column.getName());
+                            if (statement != null)
+                            {
+                                if (checkStatement(statement))
+                                {
+                                    resultAceptor.addIssue(Messages.LoacalizationNstrCheck_Issue, statement);
+                                }
                             }
                         }
                     }

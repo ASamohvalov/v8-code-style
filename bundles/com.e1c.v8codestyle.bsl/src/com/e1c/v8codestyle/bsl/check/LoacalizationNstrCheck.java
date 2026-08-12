@@ -35,7 +35,7 @@ import com.e1c.g5.v8.dt.check.ICheckParameters;
 import com.e1c.g5.v8.dt.check.components.ModuleTopObjectNameFilterExtension;
 import com.e1c.g5.v8.dt.check.settings.IssueSeverity;
 import com.e1c.g5.v8.dt.check.settings.IssueType;
-import com.e1c.v8codestyle.check.CommonSenseCheckExtension;
+import com.e1c.v8codestyle.check.StandardCheckExtension;
 import com.e1c.v8codestyle.internal.bsl.BslPlugin;
 
 /**
@@ -48,15 +48,34 @@ public class LoacalizationNstrCheck
 {
     private static final String CHECK_ID = "nstr-localization"; //$NON-NLS-1$
 
+    private static final String MESSAGE_NAME = "Message name"; //$NON-NLS-1$
+
+    private static final String MESSAGE_NAME_ONE = "Message name parameter number one"; //$NON-NLS-1$
+
+    private static final String MESSAGE_NAME_ZERO = "Message name parameter number zero"; //$NON-NLS-1$
+
     private static final String NSTR = "NStr"; //$NON-NLS-1$
 
     private static final String NSTR_RU = "НСтр"; //$NON-NLS-1$
 
     private static final Set<String> IMMUTABLE_MAP_MESSAGES =
-        Set.of("показатьпредупреждение", "showmessagebox", "сообщение", "message", "сообщить", //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$//$NON-NLS-5$
-            "показатьоповещениепользователя", "showusernotification", "ПоказатьВопрос", "ShowQueryBox", "Состояние", //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
+        Set.of("ПоказатьПредупреждение", "ShowMessagebox", "Сообщение", "Message", "Сообщить", //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$//$NON-NLS-5$
+            "ПоказатьОповещениеПользователя", "ShowUserNotification", "ПоказатьВопрос", "ShowQueryBox", "Состояние", //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
             "Status"); //$NON-NLS-1$
+    private static final Set<String> IMMUTABLE_MAP_NUMBER_ONE_MESSAGES =
+        Set.of("ПоказатьПредупреждение", "ShowMessageBox", "ПоказатьВопрос", "ShowQueryBox"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
+    private static final Set<String> IMMUTABLE_MAP_NUMBER_ZERO_MESSAGES = Set.of("сообщение", "Сообщить", "Message", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        "ПоказатьОповещениеПользователя", "ShowUsernotification", "Состояние", "Status"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+
+    private static final String DELIMITER = ","; //$NON-NLS-1$
+
+    private static final String DEFAULT_MESSAGES = String.join(DELIMITER, IMMUTABLE_MAP_MESSAGES);
+
+    private static final String DEFAULT_MESSAGES_NUMBER_ONE = String.join(DELIMITER, IMMUTABLE_MAP_NUMBER_ONE_MESSAGES);
+
+    private static final String DEFAULT_MESSAGES_NUMBER_ZERO =
+        String.join(DELIMITER, IMMUTABLE_MAP_NUMBER_ZERO_MESSAGES);
     @Override
     public String getCheckId()
     {
@@ -72,7 +91,12 @@ public class LoacalizationNstrCheck
             .severity(IssueSeverity.MINOR)
             .issueType(IssueType.CODE_STYLE)
             .extension(new ModuleTopObjectNameFilterExtension())
-            .extension(new CommonSenseCheckExtension(getCheckId(), BslPlugin.PLUGIN_ID))
+            .extension(new StandardCheckExtension(761, getCheckId(), BslPlugin.PLUGIN_ID))
+            .parameter(MESSAGE_NAME, String.class, DEFAULT_MESSAGES, Messages.LoacalizationNstrCheck_Parameter_Title)
+            .parameter(MESSAGE_NAME_ONE, String.class, DEFAULT_MESSAGES_NUMBER_ONE,
+                Messages.LoacalizationNstrCheck_Parameter_Title_One)
+            .parameter(MESSAGE_NAME_ZERO, String.class, DEFAULT_MESSAGES_NUMBER_ZERO,
+                Messages.LoacalizationNstrCheck_Parameter_Title_Zero)
             .module()
             .checkedObjectType(INVOCATION);
     }
@@ -83,14 +107,16 @@ public class LoacalizationNstrCheck
     {
         Invocation invocation = (Invocation)object;
         NodeModelUtils.findActualNodeFor(invocation).getText();
-        if (!IMMUTABLE_MAP_MESSAGES.contains(invocation.getMethodAccess().getName().toLowerCase())
+        if (!parameters.getString(MESSAGE_NAME)
+            .toLowerCase()
+            .contains(invocation.getMethodAccess().getName().toLowerCase())
             || invocation.getParams().isEmpty())
         {
             return;
         }
         List<Expression> params = invocation.getParams();
         String nameInvocation = invocation.getMethodAccess().getName();
-        int numberParam = numberParametr(nameInvocation);
+        int numberParam = numberParametr(nameInvocation, parameters);
         if (numberParam != -1)
         {
             Expression expression = params.get(numberParam);
@@ -131,18 +157,13 @@ public class LoacalizationNstrCheck
         }
     }
 
-    private int numberParametr(String name)
+    private int numberParametr(String name, ICheckParameters parameters)
     {
-        if ("ПоказатьПредупреждение".equalsIgnoreCase(name) //$NON-NLS-1$
-            || "ShowMessageBox".equalsIgnoreCase(name) || "ПоказатьВопрос".equalsIgnoreCase(name) //$NON-NLS-1$//$NON-NLS-2$
-            || "ShowQueryBox".equalsIgnoreCase(name)) //$NON-NLS-1$
+        if (parameters.getString(MESSAGE_NAME_ONE).toLowerCase().contains(name.toLowerCase()))
         {
             return 1;
         }
-        else if ("сообщение".equalsIgnoreCase(name) || "Сообщить".equalsIgnoreCase(name) //$NON-NLS-1$//$NON-NLS-2$
-            || "Message".equalsIgnoreCase(name) || "ПоказатьОповещениеПользователя".equalsIgnoreCase(name) //$NON-NLS-1$ //$NON-NLS-2$
-            || "ShowUsernotification".equalsIgnoreCase(name) || "Состояние".equalsIgnoreCase(name) //$NON-NLS-1$//$NON-NLS-2$
-            || "Status".equalsIgnoreCase(name)) //$NON-NLS-1$
+        else if (parameters.getString(MESSAGE_NAME_ZERO).toLowerCase().contains(name.toLowerCase()))
         {
             return 0;
         }
