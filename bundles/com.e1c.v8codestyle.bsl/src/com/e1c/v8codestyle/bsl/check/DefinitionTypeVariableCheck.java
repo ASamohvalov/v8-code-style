@@ -162,7 +162,7 @@ public class DefinitionTypeVariableCheck
     {
         if (statement.getLeft() instanceof StaticFeatureAccess left)
         {
-            if (left.getName().equalsIgnoreCase(name))
+            if (name.equalsIgnoreCase(left.getName()))
             {
                 if (statement.getRight() instanceof Invocation invocation)
                 {
