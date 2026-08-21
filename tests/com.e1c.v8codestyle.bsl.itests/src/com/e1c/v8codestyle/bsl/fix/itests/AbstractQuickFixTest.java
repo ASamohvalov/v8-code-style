@@ -1,0 +1,103 @@
+/*******************************************************************************
+ * Copyright (C) 2026, 1C-Soft LLC and others.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     1C-Soft LLC - initial API and implementation
+ *******************************************************************************/
+package com.e1c.v8codestyle.bsl.fix.itests;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
+import com._1c.g5.v8.dt.validation.marker.Marker;
+import com._1c.g5.wiring.ServiceAccess;
+import com.e1c.g5.v8.dt.check.ICheck;
+import com.e1c.g5.v8.dt.check.qfix.FixProcessHandle;
+import com.e1c.g5.v8.dt.check.qfix.FixVariantDescriptor;
+import com.e1c.g5.v8.dt.check.qfix.IFixManager;
+import com.e1c.v8codestyle.bsl.check.itests.AbstractSingleModuleTestBase;
+
+/**
+ *  QuickFix helper for tests
+ *
+ *  @author Artem Samohvalov
+ */
+public abstract class AbstractQuickFixTest
+    extends AbstractSingleModuleTestBase
+{
+    private IFixManager fixManager = ServiceAccess.get(IFixManager.class);
+
+    /**
+     * @param checkClass
+     */
+    protected AbstractQuickFixTest(Class<? extends ICheck> checkClass)
+    {
+        super(checkClass);
+    }
+
+    /**
+     * This method perform the fix and modifying the project code
+     *
+     * @throws CoreException
+     * @throws IOException
+     */
+    public void performFix(Marker marker, String fixDescription) throws CoreException, IOException
+    {
+        FixProcessHandle handle = fixManager.prepareFix(marker, getProject());
+
+        FixVariantDescriptor variantDescr = null;
+
+        Collection<FixVariantDescriptor> variants = fixManager.getApplicableFixVariants(handle);
+        for (FixVariantDescriptor variant : variants)
+        {
+            if (variant.getDescription().equals(fixDescription))
+            {
+                variantDescr = variant;
+            }
+        }
+        assertNotNull(variantDescr);
+
+        fixManager.selectFixVariant(variantDescr, handle);
+        fixManager.executeFix(handle, new NullProgressMonitor());
+        fixManager.finishFix(handle);
+
+        updateProject();
+    }
+
+    /**
+     * The method performs a validity check for the current project
+     * @throws Exception
+     */
+    public void assertMarkerGone() throws Exception
+    {
+        waitForDD(getProject());
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(0, markers.size());
+    }
+
+    private void updateProject() throws CoreException, IOException
+    {
+        IFile file = getProject().getWorkspaceProject().getFile(getModuleFileName());
+        try (InputStream in = file.getContents())
+        {
+            file.setContents(in, true, true, new NullProgressMonitor());
+        }
+
+        waitForDD(getProject());
+    }
+}
