@@ -12,6 +12,8 @@
  *******************************************************************************/
 package com.e1c.v8codestyle.bsl.check;
 
+import static com._1c.g5.v8.dt.bsl.model.BslPackage.Literals.IF_STATEMENT;
+
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -29,10 +31,9 @@ import com._1c.g5.v8.dt.bsl.model.SimpleStatement;
 import com._1c.g5.v8.dt.bsl.model.Statement;
 import com._1c.g5.v8.dt.bsl.model.StaticFeatureAccess;
 import com._1c.g5.v8.dt.bsl.model.UndefinedLiteral;
+import com._1c.g5.v8.dt.bsl.model.WhileStatement;
 import com.e1c.g5.v8.dt.check.CheckComplexity;
 import com.e1c.g5.v8.dt.check.ICheckParameters;
-import com.e1c.g5.v8.dt.check.components.BasicCheck.CheckConfigurer;
-import com.e1c.g5.v8.dt.check.components.BasicCheck.ResultAcceptor;
 import com.e1c.g5.v8.dt.check.components.ModuleTopObjectNameFilterExtension;
 import com.e1c.g5.v8.dt.check.settings.IssueSeverity;
 import com.e1c.g5.v8.dt.check.settings.IssueType;
@@ -74,14 +75,15 @@ public class DefinitionTypeVariableCheck
     }
 
     @Override
-    protected void check(Object object, ResultAcceptor resultAceptor, ICheckParameters parameters,
+    protected void check(Object object, ResultAcceptor resultAcceptor, ICheckParameters parameters,
         IProgressMonitor monitor)
     {
         if (object instanceof IfStatement statement)
         {
             if (statement.getIfPart().getPredicate() instanceof BinaryExpression binaryExp)
             {
-                if (binaryExp.getOperation().equals(BinaryOperation.EQ))
+                if (binaryExp.getOperation().equals(BinaryOperation.EQ)
+                    || binaryExp.getOperation().equals(BinaryOperation.NE))
                 {
                     Expression expressionLeft = binaryExp.getLeft();
                     Expression expressionRight = binaryExp.getRight();
@@ -101,7 +103,7 @@ public class DefinitionTypeVariableCheck
                             List<Statement> statements = method.allStatements();
                             if (!checkSfa(sfaName, statements))
                             {
-                                resultAceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
+                                resultAcceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
                             }
                         }
                         else if (binaryExp.getRight() instanceof Invocation inv)
@@ -109,12 +111,12 @@ public class DefinitionTypeVariableCheck
                             if (!inv.getMethodAccess().getName().equalsIgnoreCase(TYPE_RU)
                                 || !inv.getMethodAccess().getName().equalsIgnoreCase(TYPE))
                             {
-                                resultAceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
+                                resultAcceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
                             }
                         }
                         else if (expressionRight instanceof UndefinedLiteral)
                         {
-                            resultAceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
+                            resultAcceptor.addIssue(Messages.DefinitionTypeVariableCheck_Issue);
                         }
                     }
                 }
@@ -149,6 +151,14 @@ public class DefinitionTypeVariableCheck
             else if (statement instanceof ForStatement forStatement)
             {
                 List<Statement> forStatements = forStatement.getStatements();
+                if (checkSfa(name, forStatements))
+                {
+                    return true;
+                }
+            }
+            else if (statement instanceof WhileStatement whileStatement)
+            {
+                List<Statement> forStatements = whileStatement.getStatements();
                 if (checkSfa(name, forStatements))
                 {
                     return true;
