@@ -16,11 +16,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
@@ -76,7 +74,7 @@ public abstract class AbstractQuickFixTest
         fixManager.executeFix(handle, new NullProgressMonitor());
         fixManager.finishFix(handle);
 
-        updateProject();
+        waitForDD(getProject());
     }
 
     /**
@@ -88,16 +86,5 @@ public abstract class AbstractQuickFixTest
         waitForDD(getProject());
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
-    }
-
-    private void updateProject() throws CoreException, IOException
-    {
-        IFile file = getProject().getWorkspaceProject().getFile(getModuleFileName());
-        try (InputStream in = file.getContents())
-        {
-            file.setContents(in, true, true, new NullProgressMonitor());
-        }
-
-        waitForDD(getProject());
     }
 }
