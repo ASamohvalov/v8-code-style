@@ -18,6 +18,7 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.resource.XtextResource;
 
+import com._1c.g5.v8.dt.bsl.common.Symbols;
 import com._1c.g5.v8.dt.metadata.mdclass.ScriptVariant;
 import com.e1c.g5.v8.dt.bsl.check.qfix.IXtextBslModuleFixModel;
 import com.e1c.g5.v8.dt.bsl.check.qfix.IXtextInteractiveBslModuleFixModel;
@@ -33,9 +34,6 @@ import com.e1c.g5.v8.dt.check.qfix.components.QuickFix;
 public class NotifyDescriptionToServerProcedureFix
     extends SingleVariantXtextBslModuleFix
 {
-    private static final String AT_CLIENT_KEYWORD = "AtClient"; //$NON-NLS-1$
-    private static final String AT_CLIENT_KEYWORD_RU = "НаКлиенте"; //$NON-NLS-1$
-
     @Override
     protected void configureFix(FixConfigurer configurer)
     {
@@ -59,7 +57,6 @@ public class NotifyDescriptionToServerProcedureFix
 
     private String getAtClientKeyword(IXtextBslModuleFixModel model)
     {
-        boolean isRussian = model.getScriptVariant() == ScriptVariant.RUSSIAN;
-        return isRussian ? AT_CLIENT_KEYWORD_RU : AT_CLIENT_KEYWORD;
+        return model.getScriptVariant() == ScriptVariant.RUSSIAN ? Symbols.AT_CLIENT_INTNL : Symbols.AT_CLIENT_RUS;
     }
 }

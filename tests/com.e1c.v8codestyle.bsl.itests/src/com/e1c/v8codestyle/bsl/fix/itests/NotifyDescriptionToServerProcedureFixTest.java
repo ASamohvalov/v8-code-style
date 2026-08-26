@@ -13,11 +13,13 @@
 package com.e1c.v8codestyle.bsl.fix.itests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Test;
 
+import com._1c.g5.v8.dt.bsl.model.Module;
 import com._1c.g5.v8.dt.validation.marker.Marker;
 import com.e1c.v8codestyle.bsl.check.NotifyDescriptionToServerProcedureCheck;
 
@@ -29,6 +31,9 @@ import com.e1c.v8codestyle.bsl.check.NotifyDescriptionToServerProcedureCheck;
 public class NotifyDescriptionToServerProcedureFixTest
     extends AbstractQuickFixTest
 {
+    private static final String FIX_DESCRIPTION = "Create the missing procedure for NotifyDescription";
+    private static final String FIX_DESCRIPTION_RU = "Создать отсутствующую процедуру для ОписаниеОповещения";
+
     public NotifyDescriptionToServerProcedureFixTest()
     {
         super(NotifyDescriptionToServerProcedureCheck.class);
@@ -43,8 +48,16 @@ public class NotifyDescriptionToServerProcedureFixTest
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
 
-        performFix(marker, "Создать отсутствующую процедуру для ОписаниеОповещения");
+        performFix(marker, isRussianLocalization() ? FIX_DESCRIPTION_RU : FIX_DESCRIPTION);
         assertMarkerGone();
+
+        assertHasMethod();
     }
 
+    private void assertHasMethod()
+    {
+        Module module = getModule();
+        // find created method in module
+        assertTrue(module.allMethods().stream().anyMatch(m -> m.getName().equals("Aaaaa")));
+    }
 }

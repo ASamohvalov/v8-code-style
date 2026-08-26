@@ -39,9 +39,6 @@ import com.google.common.base.Strings;
  */
 public final class QuickFixMethodsHelper
 {
-    private static final String EXPORT_KEYWORD = "Export"; //$NON-NLS-1$
-    private static final String EXPORT_KEYWORD_RU = "Экспорт"; //$NON-NLS-1$
-
     /**
      * Creates method and writes it to module
      *
@@ -249,8 +246,8 @@ public final class QuickFixMethodsHelper
 
     private static String getExportKeyword(IXtextBslModuleFixModel model)
     {
-        boolean isRussian = model.getScriptVariant() == ScriptVariant.RUSSIAN;
-        return isRussian ? EXPORT_KEYWORD_RU : EXPORT_KEYWORD;
+        return BslProposalProvider.getExportLiteralName(model.getBslGrammar(),
+            model.getScriptVariant() == ScriptVariant.RUSSIAN);
     }
 
     private static int getModelNameLength(IXtextInteractiveBslModuleFixModel model)

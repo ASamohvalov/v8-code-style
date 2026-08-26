@@ -54,7 +54,7 @@ public abstract class AbstractQuickFixTest
      * @throws CoreException
      * @throws IOException
      */
-    public void performFix(Marker marker, String fixDescription) throws CoreException, IOException
+    protected void performFix(Marker marker, String fixDescription) throws CoreException, IOException
     {
         FixProcessHandle handle = fixManager.prepareFix(marker, getProject());
 
@@ -66,8 +66,10 @@ public abstract class AbstractQuickFixTest
             if (variant.getDescription().equals(fixDescription))
             {
                 variantDescr = variant;
+                break;
             }
         }
+
         assertNotNull(variantDescr);
 
         fixManager.selectFixVariant(variantDescr, handle);
@@ -81,10 +83,20 @@ public abstract class AbstractQuickFixTest
      * The method performs a validity check for the current project
      * @throws Exception
      */
-    public void assertMarkerGone() throws Exception
+    protected void assertMarkerGone() throws Exception
     {
         waitForDD(getProject());
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
+    }
+
+    /**
+     * How to get real language?
+     *
+     * @return boolean
+     */
+    protected boolean isRussianLocalization()
+    {
+        return true;
     }
 }
