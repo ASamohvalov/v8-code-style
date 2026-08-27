@@ -57,6 +57,6 @@ public class NotifyDescriptionToServerProcedureFix
 
     private String getAtClientKeyword(IXtextBslModuleFixModel model)
     {
-        return model.getScriptVariant() == ScriptVariant.RUSSIAN ? Symbols.AT_CLIENT_INTNL : Symbols.AT_CLIENT_RUS;
+        return model.getScriptVariant() == ScriptVariant.RUSSIAN ? Symbols.AT_CLIENT_RUS : Symbols.AT_CLIENT_INTNL;
     }
 }
