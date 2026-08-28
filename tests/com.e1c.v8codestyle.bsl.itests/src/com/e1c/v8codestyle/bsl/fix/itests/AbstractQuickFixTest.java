@@ -89,14 +89,4 @@ public abstract class AbstractQuickFixTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-
-    /**
-     * How to get real language?
-     *
-     * @return boolean
-     */
-    protected boolean isRussianLocalization()
-    {
-        return true;
-    }
 }

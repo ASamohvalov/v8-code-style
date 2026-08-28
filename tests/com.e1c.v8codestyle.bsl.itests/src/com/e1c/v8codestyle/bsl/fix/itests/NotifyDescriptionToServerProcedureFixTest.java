@@ -31,9 +31,6 @@ import com.e1c.v8codestyle.bsl.check.NotifyDescriptionToServerProcedureCheck;
 public class NotifyDescriptionToServerProcedureFixTest
     extends AbstractQuickFixTest
 {
-    private static final String FIX_DESCRIPTION = "Create the missing procedure for NotifyDescription";
-    private static final String FIX_DESCRIPTION_RU = "Создать отсутствующую процедуру для ОписаниеОповещения";
-
     public NotifyDescriptionToServerProcedureFixTest()
     {
         super(NotifyDescriptionToServerProcedureCheck.class);
@@ -48,7 +45,7 @@ public class NotifyDescriptionToServerProcedureFixTest
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
 
-        performFix(marker, isRussianLocalization() ? FIX_DESCRIPTION_RU : FIX_DESCRIPTION);
+        performFix(marker, Messages.NotifyDescriptionToServerProcedureFix_Description);
         assertMarkerGone();
 
         assertHasMethod();
@@ -58,6 +55,6 @@ public class NotifyDescriptionToServerProcedureFixTest
     {
         Module module = getModule();
         // find created method in module
-        assertTrue(module.allMethods().stream().anyMatch(m -> m.getName().equals("Aaaaa")));
+        assertTrue(module.allMethods().stream().anyMatch(m -> "Aaaaa".equals(m.getName())));
     }
 }
