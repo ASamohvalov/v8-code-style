@@ -146,9 +146,6 @@ public class PropertiesArrayModificationCheck
             }
             else if (statement instanceof SimpleStatement simpleStatement)
             {
-                INode node = NodeModelUtils.findActualNodeFor(statement);
-                System.out.println(node.getText());
-                
                 processVariable(simpleStatement);
                 processMethodCall(simpleStatement);
             }
