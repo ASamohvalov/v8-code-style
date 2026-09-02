@@ -25,13 +25,12 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.TreeIterator;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.EcoreUtil2;
-import org.eclipse.xtext.nodemodel.INode;
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
 import com._1c.g5.v8.dt.bsl.model.DynamicFeatureAccess;
-import com._1c.g5.v8.dt.bsl.model.ExplicitVariable;
-import com._1c.g5.v8.dt.bsl.model.FeatureEntry;
 import com._1c.g5.v8.dt.bsl.model.Function;
 import com._1c.g5.v8.dt.bsl.model.Invocation;
 import com._1c.g5.v8.dt.bsl.model.Method;
@@ -40,7 +39,6 @@ import com._1c.g5.v8.dt.bsl.model.ReturnStatement;
 import com._1c.g5.v8.dt.bsl.model.SimpleStatement;
 import com._1c.g5.v8.dt.bsl.model.Statement;
 import com._1c.g5.v8.dt.bsl.model.StaticFeatureAccess;
-import com._1c.g5.v8.dt.bsl.model.Variable;
 import com.e1c.g5.v8.dt.check.CheckComplexity;
 import com.e1c.g5.v8.dt.check.ICheckParameters;
 import com.e1c.g5.v8.dt.check.components.BasicCheck;
@@ -69,17 +67,20 @@ public class PropertiesArrayModificationCheck
     private static final Set<String> CHECK_ADD_METHOD_CALLS = Set.of("add", "добавить"); //$NON-NLS-1$ //$NON-NLS-2$
     private static final Set<String> CHECK_DELETE_METHOD_CALLS = Set.of("delete", "удалить"); //$NON-NLS-1$ //$NON-NLS-2$
 
-    // key - method name in lower case
-    // value - set of target variables in lower case
-    private final Map<String, Set<String>> targetVariableMap = new HashMap<>();
-    private final Set<String> targetGlobalVariables = new HashSet<>();
+    private static class CheckContext
+    {
+        // key - method name in lower case
+        // value - set of target variables in lower case
+        final Map<String, Set<String>> targetVariableMap = new HashMap<>();
+        final Set<String> targetGlobalVariables = new HashSet<>();
 
-    private EList<Method> allMethods;
-    private Set<String> allGlobalVariableNames;
-    private ResultAcceptor resultAcceptor;
-    private Method currentMethod;
-    private String currentMethodName; // in lower case (for optimization)
-    private boolean isLastReturnTarget = false;
+        EList<Method> allMethods;
+        Set<String> allGlobalVariableNames;
+        ResultAcceptor resultAcceptor;
+        Method currentMethod;
+        String currentMethodName; // in lower case (for optimization)
+        boolean isLastReturnTarget = false;
+    }
 
     @Override
     public String getCheckId()
@@ -105,49 +106,50 @@ public class PropertiesArrayModificationCheck
     protected void check(Object object, ResultAcceptor resultAcceptor, ICheckParameters parameters,
         IProgressMonitor monitor)
     {
-        currentMethod = (Method)object;
+        Method method = (Method)object;
 
-        currentMethodName = currentMethod.getName().toLowerCase();
-        if (currentMethodName.equalsIgnoreCase(CHECKED_METHOD_NAME)
-            || currentMethodName.equalsIgnoreCase(CHECKED_METHOD_NAME_RU))
+        String methodName = method.getName().toLowerCase();
+        if (methodName.equalsIgnoreCase(CHECKED_METHOD_NAME) || methodName.equalsIgnoreCase(CHECKED_METHOD_NAME_RU))
         {
-            if (currentMethod.getFormalParams().size() != 2)
+            if (method.getFormalParams().size() != 2)
                 return; // incorrect FillCheckProcessing
 
-            this.resultAcceptor = resultAcceptor;
+            CheckContext context = new CheckContext();
+            context.resultAcceptor = resultAcceptor;
+            context.currentMethod = method;
+            context.currentMethodName = methodName;
 
-            String checkedAttributesName = currentMethod.getFormalParams().get(1).getName().toLowerCase(); // get target variable, always on second position
-            targetVariableMap.put(currentMethodName, new HashSet<>(Set.of(checkedAttributesName)));
+            String checkedAttributesName = method.getFormalParams().get(1).getName().toLowerCase(); // get target variable, always on second position
+            context.targetVariableMap.put(methodName, new HashSet<>(Set.of(checkedAttributesName)));
 
-            Module module = EcoreUtil2.getContainerOfType(currentMethod, Module.class);
-            allMethods = module.allMethods();
+            Module module = EcoreUtil2.getContainerOfType(method, Module.class);
+            context.allMethods = module.allMethods();
 
-            allGlobalVariableNames = module.allDeclareStatements()
+            context.allGlobalVariableNames = module.allDeclareStatements()
                 .stream()
                 .flatMap(st -> st.getVariables().stream())
                 .map(var -> var.getName().toLowerCase())
                 .collect(Collectors.toSet());
 
-            iterationByMethod();
-            
-            // clear
-            targetGlobalVariables.clear();
-            targetVariableMap.clear();
+            iterationByMethod(context);
         }
     }
 
-    private void iterationByMethod()
+    private void iterationByMethod(CheckContext context)
     {
-        for (Statement statement : currentMethod.allStatements())
-        {
-            if (statement instanceof ReturnStatement returnStatement)
+        TreeIterator<EObject> it = EcoreUtil.getAllContents(context.currentMethod, true); // for parse all stmts
+
+        while (it.hasNext()) {
+            EObject element = it.next();
+            if (element instanceof ReturnStatement returnStatement)
             {
-                processReturnValue(returnStatement);
+                processReturnValue(context, returnStatement);
+                if (context.isLastReturnTarget) return; // find target return
             }
-            else if (statement instanceof SimpleStatement simpleStatement)
+            else if (element instanceof SimpleStatement simpleStatement)
             {
-                processVariable(simpleStatement);
-                processMethodCall(simpleStatement);
+                processVariable(context, simpleStatement);
+                processMethodCall(context, simpleStatement);
             }
         }
     }
@@ -164,7 +166,7 @@ public class PropertiesArrayModificationCheck
      * 
      * @param simpleStatement
      */
-    private void processVariable(SimpleStatement simpleStatement)
+    private void processVariable(CheckContext context, SimpleStatement simpleStatement)
     {
         if (simpleStatement.getLeft() != null && simpleStatement.getRight() != null
             && simpleStatement.getLeft() instanceof StaticFeatureAccess leftStatement) // this is the var name
@@ -174,39 +176,40 @@ public class PropertiesArrayModificationCheck
             {
                 String lowerCaseRightVarName = rightStatement.getName().toLowerCase();
                 // remove if target = some_not_target
-                if (containsInTargets(lowerCaseLeftVarName) && !containsInTargets(lowerCaseRightVarName))
+                if (containsInTargets(context, lowerCaseLeftVarName)
+                    && !containsInTargets(context, lowerCaseRightVarName))
                 {
-                    targetVariableMap.get(currentMethodName).remove(lowerCaseLeftVarName);
+                    context.targetVariableMap.get(context.currentMethodName).remove(lowerCaseLeftVarName);
                     return;
                 }
-                
+
                 // add if some_not_target = target
-                if (containsInTargets(lowerCaseRightVarName))
+                if (containsInTargets(context, lowerCaseRightVarName))
                 {
-                    if (allGlobalVariableNames.contains(lowerCaseLeftVarName))
+                    if (context.allGlobalVariableNames.contains(lowerCaseLeftVarName))
                     {
-                        targetGlobalVariables.add(lowerCaseLeftVarName);
+                        context.targetGlobalVariables.add(lowerCaseLeftVarName);
                         return;
                     }
                     // set new target variable name
-                    addToVariableMap(lowerCaseLeftVarName);
+                    addToVariableMap(context, lowerCaseLeftVarName);
                 }
             }
-            else if (containsInVariableMap(lowerCaseLeftVarName)) // delete if target = some_expr
+            else if (containsInVariableMap(context, lowerCaseLeftVarName)) // delete if target = some_expr
             {
-                targetVariableMap.get(currentMethodName).remove(lowerCaseLeftVarName);
+                context.targetVariableMap.get(context.currentMethodName).remove(lowerCaseLeftVarName);
             }
-            else if (targetGlobalVariables.contains(lowerCaseLeftVarName)) // delete if glob_target = some_expr
+            else if (context.targetGlobalVariables.contains(lowerCaseLeftVarName)) // delete if glob_target = some_expr
             {
-                targetGlobalVariables.remove(lowerCaseLeftVarName);
+                context.targetGlobalVariables.remove(lowerCaseLeftVarName);
             }
             else if (simpleStatement.getRight() instanceof Invocation invocationExpression
                 && invocationExpression.getMethodAccess() instanceof StaticFeatureAccess) // common method call on the right
             {
-                goToMethod(invocationExpression, true);
-                if (isLastReturnTarget)
+                goToMethod(context, invocationExpression, true);
+                if (context.isLastReturnTarget)
                 {
-                    addToVariableMap(lowerCaseLeftVarName);
+                    addToVariableMap(context, lowerCaseLeftVarName);
                 }
             }
         }
@@ -220,7 +223,7 @@ public class PropertiesArrayModificationCheck
      * @param simpleStatement
      * @param resultAcceptor
      */
-    private void processMethodCall(SimpleStatement simpleStatement)
+    private void processMethodCall(CheckContext context, SimpleStatement simpleStatement)
     {
         if (simpleStatement.getLeft() != null && simpleStatement.getLeft() instanceof Invocation invocationExpression)
         {
@@ -231,27 +234,28 @@ public class PropertiesArrayModificationCheck
                 {
                     String lowerMethodName = dynamicAccess.getName().toLowerCase();
                     String lowerVariableName = staticAccess.getName().toLowerCase();
-                    if (containsInVariableMap(lowerVariableName) || targetGlobalVariables.contains(lowerVariableName)) // if target variable
+                    if (containsInVariableMap(context, lowerVariableName)
+                        || context.targetGlobalVariables.contains(lowerVariableName)) // if target variable
                     {
-                        setIssueByMethodName(lowerMethodName, staticAccess.getName(), simpleStatement);
+                        setIssueByMethodName(context, lowerMethodName, staticAccess.getName(), simpleStatement);
                     }
                 }
                 // for - SomeMethod().Delete(); don't work for - SomeMethod().SomeMethod().Delete()
                 else if (dynamicAccess.getSource() instanceof Invocation subMethodInvocation
                     && invocationExpression.getMethodAccess() instanceof DynamicFeatureAccess subDynamicAccess) // method call
                 {
-                    goToMethod(subMethodInvocation, true);
-                    if (isLastReturnTarget)
+                    goToMethod(context, subMethodInvocation, true);
+                    if (context.isLastReturnTarget)
                     {
-                        setIssueByMethodName(subDynamicAccess.getName(),
-                            subMethodInvocation.getMethodAccess().getName(), simpleStatement);
+                        setIssueByMethodName(context, subDynamicAccess.getName(),
+                            subMethodInvocation.getMethodAccess().getName(), simpleStatement); // TODO var name
                     }
                 }
             }
             else
             {
                 // common method call
-                goToMethod(invocationExpression, false);
+                goToMethod(context, invocationExpression, false);
             }
         }
     }
@@ -261,19 +265,20 @@ public class PropertiesArrayModificationCheck
      * 
      * @param returnStatement
      */
-    private void processReturnValue(ReturnStatement returnStatement)
+    private void processReturnValue(CheckContext context, ReturnStatement returnStatement)
     {
         if (returnStatement.getExpression() instanceof StaticFeatureAccess staticAccess)
         {
             String lowerVariableName = staticAccess.getName().toLowerCase();
-            if (targetGlobalVariables.contains(lowerVariableName) || containsInVariableMap(lowerVariableName))
+            if (context.targetGlobalVariables.contains(lowerVariableName)
+                || containsInVariableMap(context, lowerVariableName))
             {
-                isLastReturnTarget = true;
+                context.isLastReturnTarget = true;
                 return;
             }
         }
 
-        isLastReturnTarget = false;
+        context.isLastReturnTarget = false;
     }
 
     /**
@@ -283,12 +288,13 @@ public class PropertiesArrayModificationCheck
      * 
      * @param simpleStatement
      */
-    private void goToMethod(Invocation invocationExpression, boolean onlyFunction)
+    private void goToMethod(CheckContext context, Invocation invocationExpression, boolean onlyFunction)
     {
         String methodName = invocationExpression.getMethodAccess().getName();
-        if (!methodName.equalsIgnoreCase(currentMethodName)) // if not recursion
+        if (!methodName.equalsIgnoreCase(context.currentMethodName)) // if not recursion
         {
-            var optionalMethod = allMethods.stream().filter(m -> m.getName().equalsIgnoreCase(methodName)).findAny();
+            var optionalMethod =
+                context.allMethods.stream().filter(m -> m.getName().equalsIgnoreCase(methodName)).findAny();
             if (optionalMethod.isPresent()) // if method name exists in module
             {
                 if (onlyFunction && !(optionalMethod.get() instanceof Function)) // if is not function
@@ -301,7 +307,7 @@ public class PropertiesArrayModificationCheck
                 {
                     if (params.get(i) instanceof StaticFeatureAccess sfa)
                     {
-                        if (containsInVariableMap(sfa.getName().toLowerCase()))
+                        if (containsInVariableMap(context, sfa.getName().toLowerCase()))
                         {
                             targetVariablePositions.add(i);
                         }
@@ -310,27 +316,27 @@ public class PropertiesArrayModificationCheck
 
                 // if args has a target variable
                 // or there is a global target variable here
-                if (targetVariablePositions.size() > 0 || !targetGlobalVariables.isEmpty())
+                if (targetVariablePositions.size() > 0 || !context.targetGlobalVariables.isEmpty())
                 {
-                    isLastReturnTarget = false;
+                    context.isLastReturnTarget = false;
 
-                    Method lastMethod = currentMethod;
+                    Method lastMethod = context.currentMethod;
 
-                    changeCurrentMethod(optionalMethod.get());
-                    updateTargetVariablesForMethod(targetVariablePositions);
-                    iterationByMethod();
+                    changeCurrentMethod(context, optionalMethod.get());
+                    updateTargetVariablesForMethod(context, targetVariablePositions);
+                    iterationByMethod(context);
                     // method ends
 
-                    changeCurrentMethod(lastMethod);
+                    changeCurrentMethod(context, lastMethod);
                 }
             }
         }
     }
 
-    private void changeCurrentMethod(Method method)
+    private void changeCurrentMethod(CheckContext context, Method method)
     {
-        currentMethod = method;
-        currentMethodName = method.getName().toLowerCase();
+        context.currentMethod = method;
+        context.currentMethodName = method.getName().toLowerCase();
     }
 
     /**
@@ -340,9 +346,9 @@ public class PropertiesArrayModificationCheck
      * 
      * @param targetPositions
      */
-    private void updateTargetVariablesForMethod(List<Integer> targetPositions)
+    private void updateTargetVariablesForMethod(CheckContext context, List<Integer> targetPositions)
     {
-        var argumentList = currentMethod.getFormalParams();
+        var argumentList = context.currentMethod.getFormalParams();
 
         Set<String> targetSet = new HashSet<>();
         for (int i = 0; i < argumentList.size(); ++i)
@@ -355,47 +361,48 @@ public class PropertiesArrayModificationCheck
 
         if (!targetSet.isEmpty())
         {
-            targetVariableMap.put(currentMethodName, targetSet);
+            context.targetVariableMap.put(context.currentMethodName, targetSet);
         }
     }
 
-    private void setIssueByMethodName(String methodName, String attributeName, Statement statement)
+    private void setIssueByMethodName(CheckContext context, String methodName, String attributeName,
+        Statement statement)
     {
         String lowerMethodName = methodName.toLowerCase();
         if (CHECK_ADD_METHOD_CALLS.contains(lowerMethodName))
         {
-            resultAcceptor.addIssue(
+            context.resultAcceptor.addIssue(
                 MessageFormat.format(Messages.PropertiesArrayModificationCheck_add_issue, attributeName), statement);
         }
         else if (CHECK_DELETE_METHOD_CALLS.contains(lowerMethodName)
-            && !currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME)
-            && !currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU))
+            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME)
+            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU))
         {
-            resultAcceptor.addIssue(
+            context.resultAcceptor.addIssue(
                 MessageFormat.format(Messages.PropertiesArrayModificationCheck_delete_issue, attributeName), statement);
         }
     }
 
-    private boolean containsInVariableMap(String lowerCaseVariableName)
+    private boolean containsInVariableMap(CheckContext context, String lowerCaseVariableName)
     {
-        return targetVariableMap.containsKey(currentMethodName)
-            && targetVariableMap.get(currentMethodName).contains(lowerCaseVariableName);
+        return context.targetVariableMap.containsKey(context.currentMethodName)
+            && context.targetVariableMap.get(context.currentMethodName).contains(lowerCaseVariableName);
     }
 
-    private boolean containsInTargets(String lowerCaseVariableName)
+    private boolean containsInTargets(CheckContext context, String lowerCaseVariableName)
     {
-        return (targetVariableMap.containsKey(currentMethodName)
-            && targetVariableMap.get(currentMethodName).contains(lowerCaseVariableName))
-            || targetGlobalVariables.contains(lowerCaseVariableName);
+        return (context.targetVariableMap.containsKey(context.currentMethodName)
+            && context.targetVariableMap.get(context.currentMethodName).contains(lowerCaseVariableName))
+            || context.targetGlobalVariables.contains(lowerCaseVariableName);
     }
 
-    private void addToVariableMap(String lowerCaseVariableName)
+    private void addToVariableMap(CheckContext context, String lowerCaseVariableName)
     {
-        if (!targetVariableMap.containsKey(currentMethodName))
+        if (!context.targetVariableMap.containsKey(context.currentMethodName))
         {
-            targetVariableMap.put(currentMethodName, new HashSet<>(Set.of(lowerCaseVariableName)));
+            context.targetVariableMap.put(context.currentMethodName, new HashSet<>(Set.of(lowerCaseVariableName)));
             return;
         }
-        targetVariableMap.get(currentMethodName).add(lowerCaseVariableName);
+        context.targetVariableMap.get(context.currentMethodName).add(lowerCaseVariableName);
     }
 }

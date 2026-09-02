@@ -283,4 +283,21 @@ public class PropertiesArrayModificationCheckTest
         
         assertEquals(Integer.valueOf(6), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
+
+    /**
+     * Test add element to return reference in method with nested
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testAddElementToMethodReturnRefNested() throws Exception
+    {
+        updateModule(FOLDER_RESOURCE + "check-attributes-add-element-to-method-return-ref-nested.bsl");
+
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(1, markers.size());
+        Marker marker = markers.get(0);
+        
+        assertEquals(Integer.valueOf(7), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
+    }
 }
