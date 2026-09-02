@@ -15,12 +15,13 @@ package com.e1c.v8codestyle.bsl.check;
 import static com._1c.g5.v8.dt.bsl.model.BslPackage.Literals.METHOD;
 
 import java.text.MessageFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -71,7 +72,7 @@ public class PropertiesArrayModificationCheck
         // on the top set of the 'target variables in lower case' for CURRENT method
         // go to method push set
         // return from the method pop set
-        final Stack<Set<String>> targetVariableStack = new Stack<>();
+        final Deque<Set<String>> targetVariableDeque = new ArrayDeque<>();
         final Set<String> targetGlobalVariables = new HashSet<>();
 
         Set<String> allGlobalVariableNames;
@@ -119,7 +120,7 @@ public class PropertiesArrayModificationCheck
             context.currentMethodName = methodName;
 
             String checkedAttributesName = method.getFormalParams().get(1).getName().toLowerCase(); // get target variable, always on second position
-            context.targetVariableStack.push(new HashSet<>(Set.of(checkedAttributesName)));
+            context.targetVariableDeque.push(new HashSet<>(Set.of(checkedAttributesName)));
 
             Module module = EcoreUtil2.getContainerOfType(method, Module.class);
             context.allGlobalVariableNames = module.allDeclareStatements()
@@ -136,12 +137,14 @@ public class PropertiesArrayModificationCheck
     {
         TreeIterator<EObject> it = EcoreUtil.getAllContents(context.currentMethod, true); // for parse all stmts
 
-        while (it.hasNext()) {
+        while (it.hasNext())
+        {
             EObject element = it.next();
             if (element instanceof ReturnStatement returnStatement)
             {
                 processReturnValue(context, returnStatement);
-                if (context.isLastReturnTarget) return; // find target return
+                if (context.isLastReturnTarget)
+                    return; // find target return
             }
             else if (element instanceof SimpleStatement simpleStatement)
             {
@@ -176,7 +179,7 @@ public class PropertiesArrayModificationCheck
                 if (containsInTargets(context, lowerCaseLeftVarName)
                     && !containsInTargets(context, lowerCaseRightVarName))
                 {
-                    removeFromVariableStack(context, lowerCaseLeftVarName);
+                    removeFromVariableDeque(context, lowerCaseLeftVarName);
                     return;
                 }
 
@@ -189,12 +192,12 @@ public class PropertiesArrayModificationCheck
                         return;
                     }
                     // set new target variable name
-                    addToVariableStack(context, lowerCaseLeftVarName);
+                    addToVariableDeque(context, lowerCaseLeftVarName);
                 }
             }
-            else if (containsInVariableStack(context, lowerCaseLeftVarName)) // delete if target = some_expr
+            else if (containsInVariableDeque(context, lowerCaseLeftVarName)) // delete if target = some_expr
             {
-                removeFromVariableStack(context, lowerCaseLeftVarName);
+                removeFromVariableDeque(context, lowerCaseLeftVarName);
             }
             else if (context.targetGlobalVariables.contains(lowerCaseLeftVarName)) // delete if glob_target = some_expr
             {
@@ -206,7 +209,7 @@ public class PropertiesArrayModificationCheck
                 goToMethod(context, invocationExpression, true);
                 if (context.isLastReturnTarget)
                 {
-                    addToVariableStack(context, lowerCaseLeftVarName);
+                    addToVariableDeque(context, lowerCaseLeftVarName);
                 }
             }
         }
@@ -231,10 +234,10 @@ public class PropertiesArrayModificationCheck
                 {
                     String lowerMethodName = dynamicAccess.getName().toLowerCase();
                     String lowerVariableName = staticAccess.getName().toLowerCase();
-                    if (containsInVariableStack(context, lowerVariableName)
+                    if (containsInVariableDeque(context, lowerVariableName)
                         || context.targetGlobalVariables.contains(lowerVariableName)) // if target variable
                     {
-                        setIssueByMethodName(context, lowerMethodName, staticAccess.getName(), simpleStatement);
+                        setIssueByMethodName(context, lowerMethodName, simpleStatement);
                     }
                 }
                 // for - SomeMethod().Delete(); don't work for - SomeMethod().SomeMethod().Delete()
@@ -244,8 +247,7 @@ public class PropertiesArrayModificationCheck
                     goToMethod(context, subMethodInvocation, true);
                     if (context.isLastReturnTarget)
                     {
-                        setIssueByMethodName(context, subDynamicAccess.getName(),
-                            subMethodInvocation.getMethodAccess().getName(), simpleStatement); // TODO var name
+                        setIssueByMethodName(context, subDynamicAccess.getName(), simpleStatement);
                     }
                 }
             }
@@ -268,7 +270,7 @@ public class PropertiesArrayModificationCheck
         {
             String lowerVariableName = staticAccess.getName().toLowerCase();
             if (context.targetGlobalVariables.contains(lowerVariableName)
-                || containsInVariableStack(context, lowerVariableName))
+                || containsInVariableDeque(context, lowerVariableName))
             {
                 context.isLastReturnTarget = true;
                 return;
@@ -308,7 +310,7 @@ public class PropertiesArrayModificationCheck
                 {
                     if (params.get(i) instanceof StaticFeatureAccess sfa)
                     {
-                        if (containsInVariableStack(context, sfa.getName().toLowerCase()))
+                        if (containsInVariableDeque(context, sfa.getName().toLowerCase()))
                         {
                             targetVariablePositions.add(i);
                         }
@@ -328,7 +330,7 @@ public class PropertiesArrayModificationCheck
                     iterationByMethod(context);
                     // method ends
 
-                    context.targetVariableStack.pop(); // method ends, targets don't needs
+                    context.targetVariableDeque.pop(); // method ends, targets don't needs
                     changeCurrentMethod(context, lastMethod);
                 }
             }
@@ -360,55 +362,58 @@ public class PropertiesArrayModificationCheck
                 targetSet.add(argumentList.get(i).getName().toLowerCase());
             }
         }
-            
-        context.targetVariableStack.push(targetSet);
+
+        context.targetVariableDeque.push(targetSet);
     }
 
-    private void setIssueByMethodName(CheckContext context, String methodName, String attributeName,
+    private void setIssueByMethodName(CheckContext context, String methodName,
         Statement statement)
     {
         String lowerMethodName = methodName.toLowerCase();
         if (CHECK_ADD_METHOD_CALLS.contains(lowerMethodName))
         {
-            context.resultAcceptor.addIssue(
-                MessageFormat.format(Messages.PropertiesArrayModificationCheck_add_issue, attributeName), statement);
+            context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_add_issue, statement);
         }
         else if (CHECK_DELETE_METHOD_CALLS.contains(lowerMethodName)
             && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME)
             && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU))
         {
-            context.resultAcceptor.addIssue(
-                MessageFormat.format(Messages.PropertiesArrayModificationCheck_delete_issue, attributeName), statement);
+            context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_delete_issue, statement);
         }
     }
 
-    private boolean containsInVariableStack(CheckContext context, String lowerCaseVariableName)
+    private boolean containsInVariableDeque(CheckContext context, String lowerCaseVariableName)
     {
-        return context.targetVariableStack.peek().contains(lowerCaseVariableName);
+        return !context.targetVariableDeque.isEmpty()
+            && context.targetVariableDeque.peek().contains(lowerCaseVariableName);
     }
 
     private boolean containsInTargets(CheckContext context, String lowerCaseVariableName)
     {
-        return (context.targetVariableStack.peek().contains(lowerCaseVariableName))
+        return (!context.targetVariableDeque.isEmpty()
+            && (context.targetVariableDeque.peek().contains(lowerCaseVariableName)))
             || context.targetGlobalVariables.contains(lowerCaseVariableName);
     }
 
-    private void addToVariableStack(CheckContext context, String lowerCaseVariableName)
+    private void addToVariableDeque(CheckContext context, String lowerCaseVariableName)
     {
-        context.targetVariableStack.peek().add(lowerCaseVariableName);
+        if (!context.targetVariableDeque.isEmpty())
+        {
+            context.targetVariableDeque.peek().add(lowerCaseVariableName);
+        }
     }
-    
-    private void removeFromVariableStack(CheckContext context, String lowerCaseVariableName)
+
+    private void removeFromVariableDeque(CheckContext context, String lowerCaseVariableName)
     {
-        context.targetVariableStack.peek().remove(lowerCaseVariableName);
+        if (!context.targetVariableDeque.isEmpty())
+        {
+            context.targetVariableDeque.peek().remove(lowerCaseVariableName);
+        }
     }
-    
+
     public Optional<Method> findMethodByName(CheckContext context, String methodName)
     {
         Module module = EcoreUtil2.getContainerOfType(context.currentMethod, Module.class);
-        return module.allMethods()
-            .stream()
-            .filter(m -> m.getName().equalsIgnoreCase(methodName))
-            .findAny();
+        return module.allMethods().stream().filter(m -> m.getName().equalsIgnoreCase(methodName)).findAny();
     }
 }
