@@ -35,7 +35,7 @@ public class PropertiesArrayModificationCheckTest
     {
         super(PropertiesArrayModificationCheck.class);
     }
-    
+
     /**
      * Test no error
      * Test delete element from reference in УдалитьНепроверяемыеРеквизитыИзМассива (DeleteUncheckedAttributesFromArray) method 
@@ -50,7 +50,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-    
+
     /**
      * Test no error
      * Test delete element from global reference in УдалитьНепроверяемыеРеквизитыИзМассива (DeleteUncheckedAttributesFromArray) method 
@@ -65,7 +65,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-    
+
     /**
      * Test no error
      * Test add element from no reference in AddMethod
@@ -81,7 +81,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-    
+
     /**
      * Test no error
      * Test add element from no reference in AddMethod
@@ -97,7 +97,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-    
+
     /**
      * Test no error
      * Test add element from global no reference
@@ -113,7 +113,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(0, markers.size());
     }
-    
+
     /**
      * Test delete element from reference in УдалитьНепроверяемыеРеквизитыИзМассива (DeleteUncheckedAttributesFromArray) sub method 
      *
@@ -127,10 +127,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(14), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element to CheckAttributes
      *
@@ -144,10 +144,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test delete element from CheckAttributes
      *
@@ -161,10 +161,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element to CheckAttributes reference
      *
@@ -178,10 +178,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(7), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element to method return reference
      *
@@ -195,10 +195,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test delete element from reference in another method
      *
@@ -212,10 +212,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(10), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element from reference in УдалитьНепроверяемыеРеквизитыИзМассива (DeleteUncheckedAttributesFromArray) method 
      *
@@ -229,10 +229,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(10), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element to global reference variable
      *
@@ -246,10 +246,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(15), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test delete element from method return global reference
      *
@@ -263,10 +263,10 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(8), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
-    
+
     /**
      * Test add element to local variable from method return reference
      *
@@ -280,7 +280,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(6), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
 
@@ -297,7 +297,7 @@ public class PropertiesArrayModificationCheckTest
         List<Marker> markers = getModuleMarkers();
         assertEquals(1, markers.size());
         Marker marker = markers.get(0);
-        
+
         assertEquals(Integer.valueOf(7), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
 }
