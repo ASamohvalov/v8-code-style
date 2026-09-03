@@ -14,7 +14,6 @@ package com.e1c.v8codestyle.bsl.check;
 
 import static com._1c.g5.v8.dt.bsl.model.BslPackage.Literals.METHOD;
 
-import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -366,8 +365,7 @@ public class PropertiesArrayModificationCheck
         context.targetVariableDeque.push(targetSet);
     }
 
-    private void setIssueByMethodName(CheckContext context, String methodName,
-        Statement statement)
+    private void setIssueByMethodName(CheckContext context, String methodName, Statement statement)
     {
         String lowerMethodName = methodName.toLowerCase();
         if (CHECK_ADD_METHOD_CALLS.contains(lowerMethodName))
