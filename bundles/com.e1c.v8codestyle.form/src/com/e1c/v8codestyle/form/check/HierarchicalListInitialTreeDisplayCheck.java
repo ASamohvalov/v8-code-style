@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 
 import com._1c.g5.v8.bm.core.IBmObject;
 import com._1c.g5.v8.bm.core.event.BmSubEvent;
+import com._1c.g5.v8.dt.form.model.FormPackage;
 import com._1c.g5.v8.dt.form.model.Table;
 import com._1c.g5.v8.dt.form.model.TableInitialTreeView;
 import com._1c.g5.v8.dt.form.model.TableRepresentation;
@@ -49,9 +50,6 @@ import com.e1c.v8codestyle.internal.form.CorePlugin;
 public class HierarchicalListInitialTreeDisplayCheck
     implements ICheck
 {
-    private static final String TARGET_PROPERTY_VALUE = "ExpandAllLevels"; //$NON-NLS-1$
-    private static final String TARGET_PROPERTY_VALUE_RU = "РаскрыватьВсеУровни"; //$NON-NLS-1$
-
     private final IBasicCheckExtension extension = new StandardCheckExtension(489, getCheckId(), CorePlugin.PLUGIN_ID);
 
     @Override
@@ -64,17 +62,12 @@ public class HierarchicalListInitialTreeDisplayCheck
     public void check(Object object, ICheckResultAcceptor resultAcceptor, ICheckParameters parameters,
         IProgressMonitor progressMonitor)
     {
-        if (!(object instanceof Table table))
-        {
-            return;
-        }
-
-        TableInitialTreeView treeView = table.getInitialTreeView();
-        if (treeView != null && (TARGET_PROPERTY_VALUE.equalsIgnoreCase(treeView.getName())
-            || TARGET_PROPERTY_VALUE_RU.equalsIgnoreCase(treeView.getName())))
+        if (object instanceof Table table
+            && table.getRepresentation() == TableRepresentation.HIERARCHICAL_LIST
+            && table.getInitialTreeView() == TableInitialTreeView.EXPAND_ALL_LEVELS)
         {
             EIssue issue = new EIssue(Messages.HierarchicalListInitialTreeDisplay_issue,
-                MdClassPackage.Literals.REPORT_TABULAR_SECTION_ATTRIBUTE__FILL_FROM_FILLING_VALUE);
+                FormPackage.Literals.TABLE__INITIAL_TREE_VIEW);
             resultAcceptor.addIssue(table, issue);
         }
     }
