@@ -75,6 +75,9 @@
       <fix
             class="com.e1c.v8codestyle.internal.form.ExecutableExtensionFactory:com.e1c.v8codestyle.form.fix.DynamicListFieldTitleGenerateFix">
       </fix>
+      <fix
+            class="com.e1c.v8codestyle.internal.form.ExecutableExtensionFactory:com.e1c.v8codestyle.form.fix.HierarchicalListInitialTreeDisplayFix">
+      </fix>
    </extension>
 
 </plugin>
