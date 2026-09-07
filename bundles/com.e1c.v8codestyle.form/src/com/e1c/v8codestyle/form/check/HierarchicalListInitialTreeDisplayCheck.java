@@ -26,7 +26,6 @@ import com._1c.g5.v8.dt.form.model.FormPackage;
 import com._1c.g5.v8.dt.form.model.Table;
 import com._1c.g5.v8.dt.form.model.TableInitialTreeView;
 import com._1c.g5.v8.dt.form.model.TableRepresentation;
-import com._1c.g5.v8.dt.metadata.mdclass.MdClassPackage;
 import com.e1c.g5.v8.dt.check.CheckComplexity;
 import com.e1c.g5.v8.dt.check.EIssue;
 import com.e1c.g5.v8.dt.check.ICheck;
