@@ -1,6 +1,6 @@
 # Fill Check Processing Event Handler
 
-Using the Add() and Delete() operators directly on the CheckedAttributes array within the FillCheckProcessing procedure is not allowed. It is only permitted to use Delete() within a dedicated RemoveUncheckedAttributesFromArray procedure.
+Using Add() or Delete() methods directly on the CheckedAttributes array within the FillCheckProcessing event handler is prohibited; you must use the SSL method CommonUse.RemoveUncheckedAttributesFromArray() or its custom equivalent that ensures safe element removal according to the official 1C template.
 
 ## Incorrect
 

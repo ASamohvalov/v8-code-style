@@ -46,6 +46,7 @@ import com.e1c.g5.v8.dt.check.settings.IssueSeverity;
 import com.e1c.g5.v8.dt.check.settings.IssueType;
 import com.e1c.v8codestyle.check.StandardCheckExtension;
 import com.e1c.v8codestyle.internal.bsl.BslPlugin;
+import com.google.common.base.Strings;
 
 /**
  * 	check array modification in FillCheckProcessing()
@@ -108,7 +109,7 @@ public class PropertiesArrayModificationCheck
         Method method = (Method)object;
 
         String methodName = method.getName().toLowerCase();
-        if (methodName.equalsIgnoreCase(CHECKED_METHOD_NAME) || methodName.equalsIgnoreCase(CHECKED_METHOD_NAME_RU))
+        if (methodName.equalsIgnoreCase(CHECKED_METHOD_NAME_RU) || methodName.equalsIgnoreCase(CHECKED_METHOD_NAME))
         {
             if (method.getFormalParams().size() != 2)
                 return; // incorrect FillCheckProcessing
@@ -118,8 +119,10 @@ public class PropertiesArrayModificationCheck
             context.currentMethod = method;
             context.currentMethodName = methodName;
 
-            String checkedAttributesName = method.getFormalParams().get(1).getName().toLowerCase(); // get target variable, always on second position
-            context.targetVariableDeque.push(new HashSet<>(Set.of(checkedAttributesName)));
+            String checkedAttributesName = Strings.nullToEmpty(method.getFormalParams().get(1).getName()).toLowerCase(); // get target variable, always on second position
+            Set<String> variableSet = new HashSet<>();
+            variableSet.add(checkedAttributesName);
+            context.targetVariableDeque.push(variableSet);
 
             Module module = EcoreUtil2.getContainerOfType(method, Module.class);
             context.allGlobalVariableNames = module.allDeclareStatements()
@@ -167,7 +170,7 @@ public class PropertiesArrayModificationCheck
      */
     private void processVariable(CheckContext context, SimpleStatement simpleStatement)
     {
-        if (simpleStatement.getLeft() != null && simpleStatement.getRight() != null
+        if (simpleStatement.getRight() != null
             && simpleStatement.getLeft() instanceof StaticFeatureAccess leftStatement) // this is the var name
         {
             String lowerCaseLeftVarName = leftStatement.getName().toLowerCase();
@@ -224,7 +227,7 @@ public class PropertiesArrayModificationCheck
      */
     private void processMethodCall(CheckContext context, SimpleStatement simpleStatement)
     {
-        if (simpleStatement.getLeft() != null && simpleStatement.getLeft() instanceof Invocation invocationExpression)
+        if (simpleStatement.getLeft() instanceof Invocation invocationExpression)
         {
             if (invocationExpression.getMethodAccess() instanceof DynamicFeatureAccess dynamicAccess) // if access from '.' => this is method call
             {
@@ -373,8 +376,8 @@ public class PropertiesArrayModificationCheck
             context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_add_issue, statement);
         }
         else if (CHECK_DELETE_METHOD_CALLS.contains(lowerMethodName)
-            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME)
-            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU))
+            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU)
+            && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME))
         {
             context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_delete_issue, statement);
         }
