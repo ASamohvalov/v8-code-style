@@ -57,7 +57,7 @@ public final class QuickFixMethodsHelper
      * Creates method and writes it to module
      *
      * @param model the xtext BSL quick fix model, cannot be {@code null}
-     * @param methodName the name of the method with (), example = "myFunctionName()"
+     * @param methodName the name of the method with (), example = "myFunctionName()" {@code null}
      * @param isFunc indicates whether the method is function or procedure
      * @param isExport indicates method Export or not
      * @param directiveName the name of directive, example = "OnClient"

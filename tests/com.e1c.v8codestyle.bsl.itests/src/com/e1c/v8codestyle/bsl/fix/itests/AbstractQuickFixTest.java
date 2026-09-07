@@ -15,11 +15,9 @@ package com.e1c.v8codestyle.bsl.fix.itests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com._1c.g5.v8.dt.validation.marker.Marker;
@@ -51,10 +49,10 @@ public abstract class AbstractQuickFixTest
     /**
      * This method perform the fix and modifying the project code
      *
-     * @throws CoreException
-     * @throws IOException
+     * @param marker the found marker in the project {@code null}
+     * @param fixDescription {@code null}
      */
-    protected void performFix(Marker marker, String fixDescription) throws CoreException, IOException
+    protected void performFix(Marker marker, String fixDescription)
     {
         FixProcessHandle handle = fixManager.prepareFix(marker, getProject());
 
@@ -81,9 +79,8 @@ public abstract class AbstractQuickFixTest
 
     /**
      * The method performs a validity check for the current project
-     * @throws Exception
      */
-    protected void assertMarkerGone() throws Exception
+    protected void assertMarkerGone()
     {
         waitForDD(getProject());
         List<Marker> markers = getModuleMarkers();
