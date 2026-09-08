@@ -79,6 +79,9 @@ final class Messages
     public static String LinkPartSpaceFix_Description;
     public static String LinkPartSpaceFix_Details;
 
+    public static String OverridableModuleOnlyExportMethodsFix_Description;
+    public static String OverridableModuleOnlyExportMethodsFix_Detatils;
+
     static
     {
         // initialize resource bundle
