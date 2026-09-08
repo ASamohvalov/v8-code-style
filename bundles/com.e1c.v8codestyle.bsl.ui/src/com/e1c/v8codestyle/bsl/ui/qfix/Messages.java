@@ -80,7 +80,7 @@ final class Messages
     public static String LinkPartSpaceFix_Details;
 
     public static String OverridableModuleOnlyExportMethodsFix_Description;
-    public static String OverridableModuleOnlyExportMethodsFix_Detatils;
+    public static String OverridableModuleOnlyExportMethodsFix_Details;
 
     static
     {

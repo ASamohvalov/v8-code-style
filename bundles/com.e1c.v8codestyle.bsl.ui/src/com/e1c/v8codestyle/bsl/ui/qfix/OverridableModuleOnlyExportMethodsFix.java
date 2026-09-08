@@ -41,7 +41,7 @@ public class OverridableModuleOnlyExportMethodsFix
     {
         configurer.interactive(true)
             .description(Messages.OverridableModuleOnlyExportMethodsFix_Description)
-            .details(Messages.OverridableModuleOnlyExportMethodsFix_Detatils);
+            .details(Messages.OverridableModuleOnlyExportMethodsFix_Details);
     }
 
     @Override

@@ -37,8 +37,8 @@ import com.e1c.v8codestyle.internal.bsl.BslPlugin;
 public class OverridableModuleOnlyExportMethodsCheck
     extends AbstractModuleStructureCheck
 {
-    private static final String OVERRIDABLE_STRING = "переопределяемый"; //$NON-NLS-1$
-    private static final String OVERRIDABLE_STRING_RU = "overridable"; //$NON-NLS-1$
+    private static final String OVERRIDABLE_STRING = "overridable"; //$NON-NLS-1$
+    private static final String OVERRIDABLE_STRING_RU = "переопределяемый"; //$NON-NLS-1$
 
     @Override
     public String getCheckId()
