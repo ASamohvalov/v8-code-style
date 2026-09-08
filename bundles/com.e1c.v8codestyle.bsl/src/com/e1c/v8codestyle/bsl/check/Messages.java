@@ -545,6 +545,11 @@ final class Messages
     public static String VariableNameInvalidCheck_variable_name_is_invalid;
     public static String VariableNameInvalidCheck_variable_name_must_start_with_a_capital_letter;
     public static String VariableNameInvalidCheck_variable_name_starts_with_an_underline;
+    
+    public static String OverridableModuleOnlyExportMethodsCheck_title;
+    public static String OverridableModuleOnlyExportMethodsCheck_description;
+    public static String OverridableModuleOnlyExportMethodsCheck_procedure_issue;
+    public static String OverridableModuleOnlyExportMethodsCheck_function_issue;
 
     static
     {
