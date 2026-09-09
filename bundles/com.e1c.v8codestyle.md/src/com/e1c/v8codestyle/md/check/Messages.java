@@ -75,6 +75,7 @@ final class Messages
     public static String WebServiceNameCheck_only_english_issue;
     public static String WebServiceNameCheck_service_substr_issue;
     public static String WebServiceNameCheck_only_english_param_issue;
+    public static String WebServiceNameCheck_only_english_operation_issue;
 
     static
     {

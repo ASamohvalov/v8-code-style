@@ -76,6 +76,23 @@ public class WebServiceNameCheckTest
     }
 
     /**
+     * check error
+     * Russian letter in WebService operation name
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testRuWordInServiceOperation() throws Exception
+    {
+        IBmObject object = getTopObjectByFqn("WebService.ValidName3", getProject());
+        assertTrue(object instanceof WebService);
+
+        WebService webService = (WebService)object;
+        Marker marker = getFirstMarker(CHECK_ID, webService, getProject());
+        assertNotNull(marker);
+    }
+
+    /**
      * check no error
      *
      * @throws Exception the exception

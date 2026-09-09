@@ -75,6 +75,10 @@ public class WebServiceNameCheck
     {
         for (Operation operation : webService.getOperations())
         {
+            if (!onlyEnglishLetters(operation.getName()))
+            {
+                resultAcceptor.addIssue(Messages.WebServiceNameCheck_only_english_operation_issue, webService);
+            }
             for (Parameter parameter : operation.getParameters())
             {
                 if (!onlyEnglishLetters(parameter.getName()))
@@ -87,6 +91,6 @@ public class WebServiceNameCheck
 
     private boolean onlyEnglishLetters(String str)
     {
-        return CharMatcher.ascii().matchesAllOf(str); // only ASCII
+        return str != null && CharMatcher.ascii().matchesAllOf(str); // only ASCII
     }
 }
