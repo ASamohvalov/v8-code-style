@@ -4,9 +4,15 @@ It is recommended to create Web service names in English using nouns that provid
 
 The system checks for non-English characters in the name of the Web service and its parameters. Using the substring "Service" in a Web service name is also considered an error.
 
-# incorrect
+# Incorrect
+- `ВебСервисОбмена` (Cyrillic)
+- `DataService` (redundant word)
+- `GetUserDataService` (redundant word)
 
 # Correct
+- `DataExchange`
+- `Users`
+- `GetCurrencyRate`
 
 # See also
 
