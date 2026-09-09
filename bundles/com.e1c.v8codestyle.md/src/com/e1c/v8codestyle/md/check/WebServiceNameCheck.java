@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (C) 2026, 1C-Soft LLC and others.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     1C-Soft LLC - initial API and implementation
+ *******************************************************************************/
 package com.e1c.v8codestyle.md.check;
 
 import static com._1c.g5.v8.dt.metadata.mdclass.MdClassPackage.Literals.WEB_SERVICE;
@@ -16,6 +28,12 @@ import com.e1c.v8codestyle.check.StandardCheckExtension;
 import com.e1c.v8codestyle.internal.md.CorePlugin;
 import com.google.common.base.CharMatcher;
 
+/**
+ *  Checking the naming of web service and operations with parameters
+ *  Searching for non-english letters and the substr "service"
+ *
+ *  @author Artem Samohvalov
+ */
 public class WebServiceNameCheck
     extends BasicCheck
 {
