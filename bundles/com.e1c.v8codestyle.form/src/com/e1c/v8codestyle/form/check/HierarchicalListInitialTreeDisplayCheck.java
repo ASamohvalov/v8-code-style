@@ -47,7 +47,7 @@ import com.e1c.v8codestyle.internal.form.CorePlugin;
  * @author Artem Samohvalov
  */
 public class HierarchicalListInitialTreeDisplayCheck
-    implements ICheck
+    implements ICheck<Object>
 {
     private final IBasicCheckExtension extension = new StandardCheckExtension(489, getCheckId(), CorePlugin.PLUGIN_ID);
 

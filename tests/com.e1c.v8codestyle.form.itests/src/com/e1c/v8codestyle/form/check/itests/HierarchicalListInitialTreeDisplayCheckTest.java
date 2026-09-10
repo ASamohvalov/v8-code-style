@@ -105,10 +105,8 @@ public class HierarchicalListInitialTreeDisplayCheckTest
         List<Marker> markers = new ArrayList<>();
         for (FormItem item : form.getItems())
         {
-            if (item instanceof Table)
+            if (item instanceof Table table)
             {
-                Table table = (Table)item;
-
                 Marker marker = getFirstMarker(CHECK_ID, table, getProject());
 
                 if (marker != null)
