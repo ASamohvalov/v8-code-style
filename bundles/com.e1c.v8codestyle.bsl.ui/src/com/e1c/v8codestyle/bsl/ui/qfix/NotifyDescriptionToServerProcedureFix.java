@@ -50,7 +50,7 @@ public class NotifyDescriptionToServerProcedureFix
     {
         EObject element = model.getElement();
         String stringValue = NodeModelUtils.getNode(element).getText();
-        String methodName = QuickFixMethodsHelper.getMethodName(stringValue.replace("\"", "")); //$NON-NLS-1$//$NON-NLS-2$
+        String methodName = QuickFixMethodsHelper.getMethodName(stringValue.replace("\"", "").trim()); //$NON-NLS-1$//$NON-NLS-2$
 
         QuickFixMethodsHelper.createMethod((IXtextInteractiveBslModuleFixModel)model, methodName, false, true,
             getAtClientKeyword(model, element));
