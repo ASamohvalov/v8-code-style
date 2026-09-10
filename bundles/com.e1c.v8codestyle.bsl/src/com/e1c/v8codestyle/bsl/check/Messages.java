@@ -364,7 +364,7 @@ final class Messages
     public static String StructureCtorTooManyKeysCheck_Structure_constructor_has_more_than__0__keys;
     public static String StructureCtorTooManyKeysCheck_title;
 
-	public static String NotSupportGotoOperatorWebCheck_Title;
+    public static String NotSupportGotoOperatorWebCheck_Title;
     public static String NotSupportGotoOperatorWebCheck_Description;
     public static String NotSupportGotoOperatorWebCheck_Issue;
 
@@ -545,11 +545,11 @@ final class Messages
     public static String VariableNameInvalidCheck_variable_name_is_invalid;
     public static String VariableNameInvalidCheck_variable_name_must_start_with_a_capital_letter;
     public static String VariableNameInvalidCheck_variable_name_starts_with_an_underline;
-    
-    public static String OverridableModuleOnlyExportMethodsCheck_title;
-    public static String OverridableModuleOnlyExportMethodsCheck_description;
-    public static String OverridableModuleOnlyExportMethodsCheck_procedure_issue;
-    public static String OverridableModuleOnlyExportMethodsCheck_function_issue;
+
+    public static String OverridableModuleOnlyExportMethodsCheck_Title;
+    public static String OverridableModuleOnlyExportMethodsCheck_Description;
+    public static String OverridableModuleOnlyExportMethodsCheck_Procedure_Issue;
+    public static String OverridableModuleOnlyExportMethodsCheck_Function_Issue;
 
     static
     {

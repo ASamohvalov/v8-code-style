@@ -49,11 +49,11 @@ public class OverridableModuleOnlyExportMethodsCheck
     @Override
     protected void configureCheck(CheckConfigurer builder)
     {
-        builder.title(Messages.OverridableModuleOnlyExportMethodsCheck_title)
-            .description(Messages.OverridableModuleOnlyExportMethodsCheck_description)
+        builder.title(Messages.OverridableModuleOnlyExportMethodsCheck_Title)
+            .description(Messages.OverridableModuleOnlyExportMethodsCheck_Description)
             .complexity(CheckComplexity.NORMAL)
             .severity(IssueSeverity.MINOR)
-            .issueType(IssueType.UI_STYLE)
+            .issueType(IssueType.CODE_STYLE)
             .extension(new StandardCheckExtension(553, getCheckId(), BslPlugin.PLUGIN_ID))
             .module()
             .checkedObjectType(MODULE);
@@ -72,8 +72,8 @@ public class OverridableModuleOnlyExportMethodsCheck
                 if (!method.isExport())
                 {
                     String message = MessageFormat.format(
-                        method instanceof Function ? Messages.OverridableModuleOnlyExportMethodsCheck_function_issue
-                            : Messages.OverridableModuleOnlyExportMethodsCheck_procedure_issue,
+                        method instanceof Function ? Messages.OverridableModuleOnlyExportMethodsCheck_Function_Issue
+                            : Messages.OverridableModuleOnlyExportMethodsCheck_Procedure_Issue,
                         method.getName());
                     resultAcceptor.addIssue(message, method);
                 }
