@@ -14,6 +14,7 @@ package com.e1c.v8codestyle.bsl.check;
 
 import static com._1c.g5.v8.dt.bsl.model.BslPackage.Literals.METHOD;
 
+import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -28,9 +29,12 @@ import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.nodemodel.INode;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
 import com._1c.g5.v8.dt.bsl.model.DynamicFeatureAccess;
 import com._1c.g5.v8.dt.bsl.model.Function;
+import com._1c.g5.v8.dt.bsl.model.IndexAccess;
 import com._1c.g5.v8.dt.bsl.model.Invocation;
 import com._1c.g5.v8.dt.bsl.model.Method;
 import com._1c.g5.v8.dt.bsl.model.Module;
@@ -50,13 +54,13 @@ import com.google.common.base.Strings;
 
 /**
  * 	check array modification in FillCheckProcessing()
- *  check find Delete() and Add() call in CheckedAttributes variable
+ *  check find the modifications of the CheckedAttributes array
  *  and set issue for that
  *
  *  @author Artem Samohvalov
  */
-public class PropertiesArrayModificationCheck
-    extends BasicCheck
+public class FillCheckProcessingPropertiesArrayModificationCheck
+    extends BasicCheck<Object>
 {
     private static final String CHECKED_METHOD_NAME = "FillCheckProcessing"; //$NON-NLS-1$
     private static final String CHECKED_METHOD_NAME_RU = "ОбработкаПроверкиЗаполнения"; //$NON-NLS-1$
@@ -64,35 +68,21 @@ public class PropertiesArrayModificationCheck
     private static final String EXCEPT_METHOD_NAME = "DeleteUncheckedAttributesFromArray"; //$NON-NLS-1$
     private static final String EXCEPT_METHOD_NAME_RU = "УдалитьНепроверяемыеРеквизитыИзМассива"; //$NON-NLS-1$
 
-    private static final Set<String> CHECK_ADD_METHOD_CALLS = Set.of("add", "добавить"); //$NON-NLS-1$ //$NON-NLS-2$
-    private static final Set<String> CHECK_DELETE_METHOD_CALLS = Set.of("delete", "удалить"); //$NON-NLS-1$ //$NON-NLS-2$
-
-    private static class CheckContext
-    {
-        // on the top set of the 'target variables in lower case' for CURRENT method
-        // go to method push set
-        // return from the method pop set
-        final Deque<Set<String>> targetVariableDeque = new ArrayDeque<>();
-        final Set<String> targetGlobalVariables = new HashSet<>();
-
-        Set<String> allGlobalVariableNames;
-        ResultAcceptor resultAcceptor;
-        Method currentMethod;
-        String currentMethodName; // in lower case (for optimization)
-        boolean isLastReturnTarget = false;
-    }
+    private static final Set<String> CHECK_ADD_METHOD_CALLS =
+        Set.of("add", "добавить", "insert", "вставить", "set", "установить"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+    private static final Set<String> CHECK_DELETE_METHOD_CALLS = Set.of("delete", "удалить", "clear", "очистить"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
     @Override
     public String getCheckId()
     {
-        return "properties-array-modification"; //$NON-NLS-1$
+        return "fill-check-processing-properties-array-modification"; //$NON-NLS-1$
     }
 
     @Override
     protected void configureCheck(CheckConfigurer builder)
     {
-        builder.title(Messages.PropertiesArrayModificationCheck_description)
-            .description(Messages.PropertiesArrayModificationCheck_title)
+        builder.title(Messages.FillCheckProcessingPropertiesArrayModificationCheck_title)
+            .description(Messages.FillCheckProcessingPropertiesArrayModificationCheck_description)
             .complexity(CheckComplexity.NORMAL)
             .severity(IssueSeverity.MINOR)
             .issueType(IssueType.CODE_STYLE)
@@ -152,6 +142,7 @@ public class PropertiesArrayModificationCheck
             {
                 processVariable(context, simpleStatement);
                 processMethodCall(context, simpleStatement);
+                processIndexAccess(context, simpleStatement);
             }
         }
     }
@@ -234,12 +225,11 @@ public class PropertiesArrayModificationCheck
                 // for - var1.Delete()
                 if (dynamicAccess.getSource() instanceof StaticFeatureAccess staticAccess) // if source is variable 
                 {
-                    String lowerMethodName = dynamicAccess.getName().toLowerCase();
                     String lowerVariableName = staticAccess.getName().toLowerCase();
                     if (containsInVariableDeque(context, lowerVariableName)
                         || context.targetGlobalVariables.contains(lowerVariableName)) // if target variable
                     {
-                        setIssueByMethodName(context, lowerMethodName, simpleStatement);
+                        setIssueByMethodName(context, dynamicAccess.getName(), simpleStatement);
                     }
                 }
                 // for - SomeMethod().Delete(); don't work for - SomeMethod().SomeMethod().Delete()
@@ -258,6 +248,25 @@ public class PropertiesArrayModificationCheck
                 // common method call
                 goToMethod(context, invocationExpression, false);
             }
+        }
+    }
+    
+    /**
+     * the method searches for an assignment to the target by index
+     * 
+     * example: target_var[1] = "new" // error
+     * 
+     * @param simpleStatement
+     * @param resultAcceptor
+     */
+    private void processIndexAccess(CheckContext context, SimpleStatement simpleStatement)
+    {
+        if (simpleStatement.getRight() != null // if some expr on the right: some = some_expr
+            && simpleStatement.getLeft() instanceof IndexAccess indexAccess // if index access: some[0] = some_expr
+            && indexAccess.getSource() instanceof StaticFeatureAccess staticAccess // if variable: variable[0] = some_expr
+            && containsInTargets(context, staticAccess.getName().toLowerCase())) // if target variable: target[0] = some_expr
+        {
+            context.resultAcceptor.addIssue(Messages.FillCheckProcessingPropertiesArrayModificationCheck_index_set_issue, simpleStatement);
         }
     }
 
@@ -373,13 +382,15 @@ public class PropertiesArrayModificationCheck
         String lowerMethodName = methodName.toLowerCase();
         if (CHECK_ADD_METHOD_CALLS.contains(lowerMethodName))
         {
-            context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_add_issue, statement);
+            String message = MessageFormat.format(Messages.FillCheckProcessingPropertiesArrayModificationCheck_add_issue, methodName);
+            context.resultAcceptor.addIssue(message, statement);
         }
         else if (CHECK_DELETE_METHOD_CALLS.contains(lowerMethodName)
             && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME_RU)
             && !context.currentMethodName.equalsIgnoreCase(EXCEPT_METHOD_NAME))
         {
-            context.resultAcceptor.addIssue(Messages.PropertiesArrayModificationCheck_delete_issue, statement);
+            String message = MessageFormat.format(Messages.FillCheckProcessingPropertiesArrayModificationCheck_delete_issue, methodName);
+            context.resultAcceptor.addIssue(message, statement);
         }
     }
 
@@ -412,9 +423,24 @@ public class PropertiesArrayModificationCheck
         }
     }
 
-    public Optional<Method> findMethodByName(CheckContext context, String methodName)
+    private Optional<Method> findMethodByName(CheckContext context, String methodName)
     {
         Module module = EcoreUtil2.getContainerOfType(context.currentMethod, Module.class);
         return module.allMethods().stream().filter(m -> m.getName().equalsIgnoreCase(methodName)).findAny();
+    }
+
+    private static class CheckContext
+    {
+        // on the top set of the 'target variables in lower case' for CURRENT method
+        // go to method push set
+        // return from the method pop set
+        final Deque<Set<String>> targetVariableDeque = new ArrayDeque<>();
+        final Set<String> targetGlobalVariables = new HashSet<>();
+
+        Set<String> allGlobalVariableNames;
+        ResultAcceptor resultAcceptor;
+        Method currentMethod;
+        String currentMethodName; // in lower case (for optimization)
+        boolean isLastReturnTarget = false;
     }
 }

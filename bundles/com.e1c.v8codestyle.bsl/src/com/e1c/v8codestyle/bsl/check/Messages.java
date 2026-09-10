@@ -546,10 +546,11 @@ final class Messages
     public static String VariableNameInvalidCheck_variable_name_must_start_with_a_capital_letter;
     public static String VariableNameInvalidCheck_variable_name_starts_with_an_underline;
     
-    public static String PropertiesArrayModificationCheck_title;
-    public static String PropertiesArrayModificationCheck_description;
-    public static String PropertiesArrayModificationCheck_delete_issue;
-    public static String PropertiesArrayModificationCheck_add_issue;
+    public static String FillCheckProcessingPropertiesArrayModificationCheck_title;
+    public static String FillCheckProcessingPropertiesArrayModificationCheck_description;
+    public static String FillCheckProcessingPropertiesArrayModificationCheck_delete_issue;
+    public static String FillCheckProcessingPropertiesArrayModificationCheck_add_issue;
+    public static String FillCheckProcessingPropertiesArrayModificationCheck_index_set_issue;
 
     static
     {

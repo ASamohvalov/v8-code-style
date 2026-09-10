@@ -20,20 +20,20 @@ import org.junit.Test;
 
 import com._1c.g5.v8.dt.validation.marker.Marker;
 import com._1c.g5.v8.dt.validation.marker.StandardExtraInfo;
-import com.e1c.v8codestyle.bsl.check.PropertiesArrayModificationCheck;
+import com.e1c.v8codestyle.bsl.check.FillCheckProcessingPropertiesArrayModificationCheck;
 import com.e1c.v8codestyle.bsl.check.SemicolonMissingCheck;
 
 /**
- *  Tests for {@link SemicolonMissingCheck} check.
+ *  Tests for {@link FillCheckProcessingPropertiesArrayModificationCheck} check.
  *
  *  @author Artem Samohvalov
  */
-public class PropertiesArrayModificationCheckTest
+public class FillCheckProcessingPropertiesArrayModificationCheckTest
     extends AbstractSingleModuleTestBase
 {
-    public PropertiesArrayModificationCheckTest()
+    public FillCheckProcessingPropertiesArrayModificationCheckTest()
     {
-        super(PropertiesArrayModificationCheck.class);
+        super(FillCheckProcessingPropertiesArrayModificationCheck.class);
     }
 
     /**
@@ -299,5 +299,73 @@ public class PropertiesArrayModificationCheckTest
         Marker marker = markers.get(0);
 
         assertEquals(Integer.valueOf(7), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
+    }
+    
+    /**
+     * Test insert element
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testInsertElement() throws Exception
+    {
+        updateModule(FOLDER_RESOURCE + "check-attributes-insert-element.bsl");
+
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(1, markers.size());
+        Marker marker = markers.get(0);
+
+        assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
+    }
+    
+    /**
+     * Test set element
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testSetElement() throws Exception
+    {
+        updateModule(FOLDER_RESOURCE + "check-attributes-set-element.bsl");
+
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(1, markers.size());
+        Marker marker = markers.get(0);
+
+        assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
+    }
+    
+    /**
+     * Test clear element
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testClearElement() throws Exception
+    {
+        updateModule(FOLDER_RESOURCE + "check-attributes-clear-element.bsl");
+
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(1, markers.size());
+        Marker marker = markers.get(0);
+
+        assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
+    }
+    
+    /**
+     * Test [] element
+     *
+     * @throws Exception the exception
+     */
+    @Test
+    public void testAddWithIndexOperatiorElement() throws Exception
+    {
+        updateModule(FOLDER_RESOURCE + "check-attributes-insert-with-index-operator-to-element.bsl");
+
+        List<Marker> markers = getModuleMarkers();
+        assertEquals(1, markers.size());
+        Marker marker = markers.get(0);
+
+        assertEquals(Integer.valueOf(5), marker.getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
 }
