@@ -39,8 +39,9 @@ public abstract class AbstractQuickFixTest
     private IFixManager fixManager = ServiceAccess.get(IFixManager.class);
 
     /**
-     * @param checkClass
+     * @param checkClass, cannot be {@code null}
      */
+    @SuppressWarnings("rawtypes")
     protected AbstractQuickFixTest(Class<? extends ICheck> checkClass)
     {
         super(checkClass);
@@ -49,8 +50,8 @@ public abstract class AbstractQuickFixTest
     /**
      * This method perform the fix and modifying the project code
      *
-     * @param marker the found marker in the project {@code null}
-     * @param fixDescription {@code null}
+     * @param marker the found marker in the project, cannot be {@code null}
+     * @param fixDescription, cannot be {@code null}
      */
     protected void performFix(Marker marker, String fixDescription)
     {

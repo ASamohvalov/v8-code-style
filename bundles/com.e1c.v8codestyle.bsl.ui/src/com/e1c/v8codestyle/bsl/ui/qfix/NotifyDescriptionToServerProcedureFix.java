@@ -15,10 +15,13 @@ package com.e1c.v8codestyle.bsl.ui.qfix;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.text.edits.TextEdit;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.resource.XtextResource;
 
 import com._1c.g5.v8.dt.bsl.common.Symbols;
+import com._1c.g5.v8.dt.bsl.model.Module;
+import com._1c.g5.v8.dt.bsl.model.ModuleType;
 import com._1c.g5.v8.dt.metadata.mdclass.ScriptVariant;
 import com.e1c.g5.v8.dt.bsl.check.qfix.IXtextBslModuleFixModel;
 import com.e1c.g5.v8.dt.bsl.check.qfix.IXtextInteractiveBslModuleFixModel;
@@ -50,13 +53,20 @@ public class NotifyDescriptionToServerProcedureFix
         String methodName = QuickFixMethodsHelper.getMethodName(stringValue.replace("\"", "")); //$NON-NLS-1$//$NON-NLS-2$
 
         QuickFixMethodsHelper.createMethod((IXtextInteractiveBslModuleFixModel)model, methodName, false, true,
-            getAtClientKeyword(model));
+            getAtClientKeyword(model, element));
 
         return null;
     }
 
-    private String getAtClientKeyword(IXtextBslModuleFixModel model)
+    private String getAtClientKeyword(IXtextBslModuleFixModel model, EObject element)
     {
-        return model.getScriptVariant() == ScriptVariant.RUSSIAN ? Symbols.AT_CLIENT_RUS : Symbols.AT_CLIENT_INTNL;
+        Module module = EcoreUtil2.getContainerOfType(element, Module.class);
+        ModuleType type = module.getModuleType();
+
+        if (type == ModuleType.FORM_MODULE || type == ModuleType.COMMAND_MODULE)
+        {
+            return model.getScriptVariant() == ScriptVariant.RUSSIAN ? Symbols.AT_CLIENT_RUS : Symbols.AT_CLIENT_INTNL;
+        }
+        return null;
     }
 }
