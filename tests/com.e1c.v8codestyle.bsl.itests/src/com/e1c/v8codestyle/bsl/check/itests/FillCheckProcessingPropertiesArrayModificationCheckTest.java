@@ -21,7 +21,6 @@ import org.junit.Test;
 import com._1c.g5.v8.dt.validation.marker.Marker;
 import com._1c.g5.v8.dt.validation.marker.StandardExtraInfo;
 import com.e1c.v8codestyle.bsl.check.FillCheckProcessingPropertiesArrayModificationCheck;
-import com.e1c.v8codestyle.bsl.check.SemicolonMissingCheck;
 
 /**
  *  Tests for {@link FillCheckProcessingPropertiesArrayModificationCheck} check.
