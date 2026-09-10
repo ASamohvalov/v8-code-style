@@ -1,6 +1,6 @@
 # Fill Check Processing Event Handler
 
-Using Add() or Delete() methods directly on the CheckedAttributes array within the FillCheckProcessing event handler is prohibited; you must use the SSL method CommonUse.RemoveUncheckedAttributesFromArray() or its custom equivalent that ensures safe element removal according to the official 1C template.
+Using modifiable methods directly on the CheckedAttributes array within the FillCheckProcessing event handler is prohibited; you must use the SSL method CommonUse.RemoveUncheckedAttributesFromArray() or its custom equivalent that ensures safe element removal according to the official 1C template.
 
 ## Incorrect
 
