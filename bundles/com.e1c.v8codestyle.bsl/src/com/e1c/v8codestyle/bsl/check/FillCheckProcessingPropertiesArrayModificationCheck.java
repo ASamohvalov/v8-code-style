@@ -96,8 +96,7 @@ public class FillCheckProcessingPropertiesArrayModificationCheck
     {
         Method method = (Method)object;
 
-        String methodName = method.getName().toLowerCase();
-        if (methodName.equalsIgnoreCase(CHECKED_METHOD_NAME_RU) || methodName.equalsIgnoreCase(CHECKED_METHOD_NAME))
+        if (CHECKED_METHOD_NAME_RU.equalsIgnoreCase(method.getName()) || CHECKED_METHOD_NAME.equalsIgnoreCase(method.getName()))
         {
             if (method.getFormalParams().size() != 2)
                 return; // incorrect FillCheckProcessing
@@ -105,7 +104,7 @@ public class FillCheckProcessingPropertiesArrayModificationCheck
             CheckContext context = new CheckContext();
             context.resultAcceptor = resultAcceptor;
             context.currentMethod = method;
-            context.currentMethodName = methodName;
+            context.currentMethodName = method.getName().toLowerCase();
 
             String checkedAttributesName = Strings.nullToEmpty(method.getFormalParams().get(1).getName()).toLowerCase(); // get target variable, always on second position
             Set<String> variableSet = new HashSet<>();
