@@ -13,6 +13,7 @@
 package com.e1c.v8codestyle.bsl.check;
 
 import static com._1c.g5.v8.dt.bsl.model.BslPackage.Literals.MODULE;
+import static com._1c.g5.v8.dt.mcore.McorePackage.Literals.NAMED_ELEMENT__NAME;
 
 import java.text.MessageFormat;
 
@@ -75,7 +76,7 @@ public class OverridableModuleOnlyExportMethodsCheck
                         method instanceof Function ? Messages.OverridableModuleOnlyExportMethodsCheck_Function_Issue
                             : Messages.OverridableModuleOnlyExportMethodsCheck_Procedure_Issue,
                         method.getName());
-                    resultAcceptor.addIssue(message, method);
+                    resultAcceptor.addIssue(message, method, NAMED_ELEMENT__NAME);
                 }
             }
         }
