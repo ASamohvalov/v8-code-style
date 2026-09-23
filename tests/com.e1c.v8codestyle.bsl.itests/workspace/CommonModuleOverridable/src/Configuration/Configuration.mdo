@@ -3,7 +3,7 @@
   <name>CommonModuleOverridable</name>
   <synonym>
     <key>en</key>
-    <value>Common module</value>
+    <value>Common module overridable</value>
   </synonym>
   <containedObjects classId="9cd510cd-abfc-11d4-9434-004095e12fc7" objectId="6c1e7aa2-b0dc-40a6-9666-92dc3ee3eee8"/>
   <containedObjects classId="9fcd25a0-4822-11d4-9414-008048da11f9" objectId="23a1191a-d0c7-4384-92b6-1c0af1530860"/>

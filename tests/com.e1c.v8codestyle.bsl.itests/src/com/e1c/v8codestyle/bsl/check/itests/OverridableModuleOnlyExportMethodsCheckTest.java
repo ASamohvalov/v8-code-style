@@ -33,16 +33,11 @@ public class OverridableModuleOnlyExportMethodsCheckTest
     extends AbstractSingleModuleTestBase
 {
     private static final String PROJECT_NAME = "CommonModuleOverridable";
+    private static final String COMMON_MODULE_FILE_NAME = "/src/CommonModules/CommonModuleOverridable/Module.bsl";
 
     public OverridableModuleOnlyExportMethodsCheckTest()
     {
         super(OverridableModuleOnlyExportMethodsCheck.class);
-    }
-
-    @Override
-    protected String getTestConfigurationName()
-    {
-        return PROJECT_NAME;
     }
 
     /**
@@ -74,4 +69,17 @@ public class OverridableModuleOnlyExportMethodsCheckTest
 
         assertEquals(Integer.valueOf(1), markers.get(0).getExtraInfo().get(StandardExtraInfo.TEXT_LINE));
     }
+
+    @Override
+    protected String getModuleFileName()
+    {
+        return COMMON_MODULE_FILE_NAME;
+    }
+
+    @Override
+    protected String getTestConfigurationName()
+    {
+        return PROJECT_NAME;
+    }
+
 }
