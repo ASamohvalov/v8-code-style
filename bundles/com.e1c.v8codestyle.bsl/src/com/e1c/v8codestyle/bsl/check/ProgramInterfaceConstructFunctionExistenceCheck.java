@@ -136,7 +136,7 @@ public class ProgramInterfaceConstructFunctionExistenceCheck
         for (DeclareStatement statement : module.getDeclareStatements())
         {
             if (statement instanceof RegionPreprocessor region
-                && (region.getName().equalsIgnoreCase(nameRu) || region.getName().equalsIgnoreCase(name)))
+                && (nameRu.equalsIgnoreCase(region.getName()) || name.equalsIgnoreCase(region.getName())))
             {
                 return Optional.of(region);
             }

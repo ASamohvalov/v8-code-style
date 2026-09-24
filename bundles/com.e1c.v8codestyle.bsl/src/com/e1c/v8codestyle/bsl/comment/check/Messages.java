@@ -79,6 +79,11 @@ final class Messages
     public static String TypeDefinitionCheck_description;
     public static String TypeDefinitionCheck_title;
     public static String TypeDefinitionCheck_Unkown_type_M_specified;
+
+    public static String DocCommentConstructorReferenceCheck_Title;
+    public static String DocCommentConstructorReferenceCheck_Description;
+    public static String DocCommentConstructorReferenceCheck_Issue;
+
     static
     {
         // initialize resource bundle
